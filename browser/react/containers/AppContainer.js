@@ -23,6 +23,7 @@ export default class AppContainer extends Component {
     this.prev = this.prev.bind(this);
     this.selectAlbum = this.selectAlbum.bind(this);
     this.selectArtist = this.selectArtist.bind(this);
+    this.addPlaylist = this.addPlaylist.bind(this);
   }
 
   componentDidMount () {
@@ -35,10 +36,30 @@ export default class AppContainer extends Component {
       .then(res => res.map(r => r.data))
       .then(data => this.onLoad(...data));
 
+    //this.addPlaylist(this.state.inputVal)
+
+    axios.get(`/api/playlists`)
+      .then(res => res.data)
+      .then(data => this.setState({
+        playlists: data
+      }))
+
+
+
     AUDIO.addEventListener('ended', () =>
       this.next());
     AUDIO.addEventListener('timeupdate', () =>
       this.setProgress(AUDIO.currentTime / AUDIO.duration));
+  }
+
+  addPlaylist (playlistName) {
+    axios.post('/api/playlists', { name: playlistName })
+      .then(res => res.data)
+      .then(playlist => {
+        this.setState({
+          playlists: [...this.state.playlists, playlist]
+        });
+      });
   }
 
   onLoad (albums, artists) {
@@ -125,18 +146,19 @@ export default class AppContainer extends Component {
   }
 
   render () {
-
+    // console.log(this.state.playlists);
     const props = Object.assign({}, this.state, {
       toggleOne: this.toggleOne,
       toggle: this.toggle,
       selectAlbum: this.selectAlbum,
-      selectArtist: this.selectArtist
+      selectArtist: this.selectArtist,
+      addPlaylist: this.addPlaylist
     });
 
     return (
       <div id="main" className="container-fluid">
         <div className="col-xs-2">
-          <Sidebar />
+          <Sidebar playlists={this.state.playlists}/>
         </div>
         <div className="col-xs-10">
         {
